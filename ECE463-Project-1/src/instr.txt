@@ -1,0 +1,122 @@
+Cache Simulation!
+
+Generic cache can be instantiated at any level
+
+parameters:
+    SIZE: Total bytes of data storage
+    ASSOC: The assoc of cache.  ASSOC=1 is a direct-mapped
+    BLOCKSIZE: number of bytes in a block
+
+constraints:
+    BLOCKSIZE must be power of 2
+    number of sets is power of 2
+    ASSOC and SIZE need not be power of 2
+
+    #sets = SIZE/(ASSOC X BLOCKSIZE)
+
+POLICY:
+    CACHE should use LRU (least-recently-used)
+    print blocks in set based on recency of acces
+
+    MRU first, LRU last
+    this is for grading
+
+    use WBWA (write-back & write-allocate)
+        WA: write that misses in CACHE will cause block to be allocated in 
+            CACHE.  so write misses and read misses will cause blocks to be
+            allocated in cache
+
+        WB: write updates coorsp block in C, making block dirty
+            it does not update next level in mem hier.  if a dirty block
+            is evicted from C, write back (wrte of entire block) will be
+            sent to next level in mem heirarchy
+
+    Sending reqs to next level in mem heirarchy
+    cache only interacts with level belwo when read or write req misses
+    receives read/write reqs from level above (could be cpu)
+
+    2 steps of allocation
+    make space fro req block X.
+        if all blocks val, must single out victim block V.  if V is dirty,
+        then write of V must be issued to next level in mem heir
+
+    Bring in req block X:
+         issue read of X to next lvl in heir and put X in place
+
+    Update state:
+        after servicing read or write req, whther coorsp block was in 
+        cahce already (hit) or just been alloc (miss), remember
+        to update other state.  this state includes LRU counters 
+        affil w/ set as well as valid and dirty bits of req block
+
+    Study mem configs in fig 2A
+        we only have to worry about an L1 or the L1 + L2 combo
+
+
+INPUT FILE FORMAT:
+    r|w <hex address>
+    r|w <hex address>
+    ...
+
+    ex:
+        r ffe04540
+        r ffe04544
+
+    all addres are 32 bits, 8 digit (nibble) hex
+    leading zeros are implied for shorter
+
+SIMULATOR OUTPUT:
+    1. Mem heirch config and trace filename
+    2. final contents of all caches
+    3. Measurements
+        a. # L1 reads
+        b. # L1 read misses
+        c. # L1 writes
+        d. # L1 write misses
+        e. # swap reqs from L1 to its VC (swap reqs = 0 if no VC)
+        f. swap req rate: SRR=swap reqs/(L1 read + L1 writes)
+        g. #swaps b/w l1 and its vc (=0 if disabled)
+        h. combined l1 + vc miss rate
+        i. num wbs from l1 or its vc to next level
+        j. num l2 reads (should = l1 read misses + l1 write misses - swaps)
+        k. num l2 read misses
+        l. num l2 writes (should = num writebacks from l1 or its vc)
+        m. num l2 write misses
+        n. l2 miss rate (from stdpnt stalling cpu)
+            = mrl2=(L2 read misses)/(l2 reads)
+        o. num writebacks from l2 to mem
+        p. total mem traffic = num blocks transf to/from mem
+            with l2, should = k+m+o
+            w/o l2, should be l1 read miss + l1 write miss - swaps
+                + writebacks from l1 or vc
+                
+Validation
+
+    use validation files online.  must match numbers and format.. will diff
+
+    redirect output to a file and literally diff to test!
+
+    MUST work in eos environment
+    
+    MUST include Makefile
+        must create simulator named "sim_cache".
+            TA should be able to type make to compile
+            should be able to type make clean to automat remove
+                object files and the simulator exec
+            examp Makefile on website
+
+     must print outputs to console
+
+
+Simulator command line args:
+    
+    sim_cache <BLOCKSIZE> <L1_SIZE> <L1_ASSOC> <VC_NUM_BLOCKS> =0, no vc
+              <L2_SIZE> =0, no l2 <L2_ASSOC> <trace_file>
+        
+PERFORMANCE:
+    every simul must finish single run in 2 min or less
+    compile w/ high optimization level
+    examp makefile uses -o3
+    compile without -o3 and with -g when debugging
+
+READ DOC FOR BENCHMARK REQS
