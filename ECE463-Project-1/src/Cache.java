@@ -177,11 +177,11 @@ public class Cache {
 				System.out.println();
 			}
 			
-			System.out.println();
-			System.out.println("===== L2 contents =====");
 			
 			if (c2 != null)
 			{
+				System.out.println();
+				System.out.println("===== L2 contents =====");
 				tmpSet = new int[c2.lAssoc][4];
 			for (int j = 0; j < c2.cache.size(); j++)
 			{
@@ -212,7 +212,7 @@ public class Cache {
 			System.out.println("===== Simulation results =====");
 			
 			System.out.println("a. number of L1 reads: "+c1.readCount);
-			System.out.println("b. L1 read misses: "+c1.readMissCount);
+			System.out.println("b. number of L1 read misses: "+c1.readMissCount);
 			System.out.println("c. number of L1 writes: "+c1.writeCount);
 			System.out.println("d. number of L1 write misses: "+c1.writeMissCount);
 			
@@ -223,7 +223,7 @@ public class Cache {
 			float missRate = (float) (c1.readMissCount+c1.writeMissCount)/(c1.readCount+c1.writeCount);
 			System.out.printf("h. combined L1+VC miss rate: %.4f\n", missRate );
 			//System.out.println("h. combined L1+VC miss rate: ");
-			System.out.println("i. number of writebacks from L1/VC: "+c1.writeBackCount);
+			System.out.println("i. number writebacks from L1/VC: "+c1.writeBackCount);
 			
 			if (c2 != null)
 			{
