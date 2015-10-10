@@ -36,6 +36,7 @@ public class Cache {
 	int indexMask;
 	int tagMask;
 	int writeBackCount = 0;
+	public static int totalMemTraff = 0;
 	
 	Cache writeTo;
 	
@@ -107,6 +108,17 @@ public class Cache {
 		
 		BufferedReader br = new BufferedReader(new FileReader(traceFile));
 		
+		System.out.println("===== Simulator configuration =====");
+		System.out.println("  BLOCKSIZE:                  " + blockSize);
+		System.out.println("  L1_SIZE:                  " + l1Size);
+		System.out.println("  L1_ASSOC:                    " + l1Assoc);
+		System.out.println("  VC_NUM_BLOCKS:               0");
+		System.out.println("  L2_SIZE:                     " + l2Size);
+		System.out.println("  L2_ASSOC:                    " + l2Assoc);
+		System.out.println("  trace_file:      " + traceFile);
+		System.out.println();
+		System.out.println("===== L1 contents =====");
+		
 		try {
 			//Cache c = new Cache(blockSize, l1Size, l1Assoc, vcNumBlocks, l2Size, l2Assoc, null);
 			Cache c2 = null;
@@ -138,12 +150,16 @@ public class Cache {
 				c1.processInput(fullAddr, rW);	
 			}
 			
-			int[][] tmpSet = new int[c2.lAssoc][4];
+			int[][] tmpSet = new int[c1.lAssoc][4];
 			
-			for(Map.Entry<Integer, int[][]> entry : c1.cache.entrySet())
+			//for(Map.Entry<Integer, int[][]> entry : c1.cache.entrySet())
+			for (int j = 0; j < c1.cache.size(); j++)
 			{
-				System.out.println("Key: " + Integer.toHexString(entry.getKey()) + ": ");
-				int[][] val = entry.getValue();
+				//System.out.println("set " + Integer.toHexString(entry.getKey()) + ":");
+				//System.out.print("set " + entry.getKey() + ":  ");
+				System.out.print("set " + (j) + ":  ");
+				//int[][] val = entry.getValue();
+				int[][] val = c1.cache.get(j);
 				for (int i = 0; i < val.length; i++)
 				{
 					tmpSet[val[i][lruIndex]] = val[i];
@@ -151,14 +167,29 @@ public class Cache {
 				}
 				for (int i = 0; i < val.length; i++)
 				{
-					System.out.println("tag is: " + Integer.toHexString(tmpSet[i][tagIndex]));
+					//System.out.
+					System.out.print(Integer.toHexString(tmpSet[i][tagIndex]) + " ");
+					if (tmpSet[i][dirtyIndex] == 1)
+					{
+						System.out.print("D ");
+					}
 				}
+				System.out.println();
 			}
 			
-			for(Map.Entry<Integer, int[][]> entry : c2.cache.entrySet())
+			System.out.println();
+			System.out.println("===== L2 contents =====");
+			
+			if (c2 != null)
 			{
-				System.out.println("Key: " + entry.getKey() + ": ");
-				int[][] val = entry.getValue();
+				tmpSet = new int[c2.lAssoc][4];
+			for (int j = 0; j < c2.cache.size(); j++)
+			{
+				//System.out.println("set " + Integer.toHexString(entry.getKey()) + ":");
+				//System.out.print("set " + entry.getKey() + ":  ");
+				System.out.print("set " + (j) + ":  ");
+				//int[][] val = entry.getValue();
+				int[][] val = c2.cache.get(j);
 				for (int i = 0; i < val.length; i++)
 				{
 					tmpSet[val[i][lruIndex]] = val[i];
@@ -166,21 +197,56 @@ public class Cache {
 				}
 				for (int i = 0; i < val.length; i++)
 				{
-					System.out.println("tag is: " + Integer.toHexString(tmpSet[i][tagIndex]) + " Dbit: " + tmpSet[i][dirtyIndex]);
+					//System.out.
+					System.out.print(Integer.toHexString(tmpSet[i][tagIndex]) + " ");
+					if (tmpSet[i][dirtyIndex] == 1)
+					{
+						System.out.print("D ");
+					}
 				}
+				System.out.println();
+			}
+			}
+			
+			System.out.println("");
+			System.out.println("===== Simulation results =====");
+			
+			System.out.println("a. number of L1 reads: "+c1.readCount);
+			System.out.println("b. L1 read misses: "+c1.readMissCount);
+			System.out.println("c. number of L1 writes: "+c1.writeCount);
+			System.out.println("d. number of L1 write misses: "+c1.writeMissCount);
+			
+			System.out.println("e. number of swap requests: 0");
+			System.out.println("f. swap request rate: 0.0000");
+			System.out.println("g. number of swaps: 0");
+			
+			float missRate = (float) (c1.readMissCount+c1.writeMissCount)/(c1.readCount+c1.writeCount);
+			System.out.printf("h. combined L1+VC miss rate: %.4f\n", missRate );
+			//System.out.println("h. combined L1+VC miss rate: ");
+			System.out.println("i. number of writebacks from L1/VC: "+c1.writeBackCount);
+			
+			if (c2 != null)
+			{
+			System.out.println("j. number of L2 reads: "+c2.readCount);
+			System.out.println("k. number of L2 read misses: "+c2.readMissCount);
+			System.out.println("l. number of L2 writes: "+c2.writeCount);
+			System.out.println("m. number of L2 write misses: "+c2.writeMissCount);
+			missRate = (float) (c2.readMissCount)/(c2.readCount);
+			System.out.printf("n. L2 miss rate: %.4f\n", missRate );
+			System.out.println("o. number of writebacks from L2: " + c2.writeBackCount);
+			}
+			else
+			{
+				System.out.println("j. number of L2 reads: 0");
+				System.out.println("k. number of L2 read misses: 0");
+				System.out.println("l. number of L2 writes: 0");
+				System.out.println("m. number of L2 write misses: 0");
+				System.out.printf("n. L2 miss rate: 0.0000\n");
+				System.out.println("o. number of writebacks from L2: 0");
 			}
 			
 			
-			System.out.println("L1 reads: "+c1.readCount);
-			System.out.println("L1 writes: "+c1.writeCount);
-			System.out.println("L1 read misses: "+c1.readMissCount);
-			System.out.println("L1 write misses: "+c1.writeMissCount);
-			System.out.println("L1 writebacks: "+c1.writeBackCount);
-			
-			System.out.println("L2 reads: "+c2.readCount);
-			System.out.println("L2 writes: "+c2.writeCount);
-			System.out.println("L2 read misses: "+c2.readMissCount);
-			System.out.println("L2 write misses: "+c2.writeMissCount);
+			System.out.println("p. total memory traffic: " + totalMemTraff);
 		}
 		catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -261,6 +327,7 @@ public class Cache {
 				//Obtain the victim
 				if (hitMiss == miss)
 				{
+					if (this.writeTo == null) totalMemTraff++;
 					//System.out.println("miss");
 					for (int i=0; i < set.length; i++)
 					{
@@ -279,19 +346,20 @@ public class Cache {
 					}
 					
 					//read from lower cache
-					if (this.writeTo != null)
-					{
+					//if (this.writeTo != null)
+					//{
 						//writebacks
-						if(set[victim][dirtyIndex] == 1)
-						{
-							int reAss = ((set[victim][tagIndex] << (indexNum)) | index) << offSetNum;
-							this.writeTo.processInput(reAss, write);
-							this.writeBackCount++;
-						}
+					if(set[victim][dirtyIndex] == 1)
+					{
+						int reAss = ((set[victim][tagIndex] << (indexNum)) | index) << offSetNum;
+						if (this.writeTo != null) this.writeTo.processInput(reAss, write);
+						this.writeBackCount++;
+						if (this.writeTo == null) totalMemTraff++;
+					}
 						
 						//read from lower cache
-						this.writeTo.processInput(fullAddr, read);
-					}
+					if (this.writeTo != null) this.writeTo.processInput(fullAddr, read);
+					//}
 					
 					//allocate
 					set[victim][validIndex] = 1;
